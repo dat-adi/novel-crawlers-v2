@@ -1,0 +1,21 @@
+#+TITLE: Novel Crawlers V2
+#+AUTHOR: Datta Adithya
+#+OPTIONS: \n:t
+
+* Why rework the same software that was built?
+The original novel crawlers was a work of art, it did everything that I needed it to do, but unfortunately, was not very scalable and had numerous flaws in it.
+
+** The scraping process froze the application
+The process of scraping took far too long, and was a synchronous process. This meant that in the case that a web frontend was designed to support novel-crawlers in the future (which is what the FastAPI approach a few months ago attempted to do), it would freeze when a request to create an EPUB was brought in.
+
+I intend to use rq, a queueing mechanism that leverages Redis' capabilities in order to have the entire process be asynchronous.
+
+** Novel Crawler's abstractions were made incorrectly
+Novel Crawler's had a major flaw where the intended solution was to abstract the extraction and scraping process away so that multiple different wordpress sites could be scraped and the process could be reused in the same way. This train of thought led to a flawed software design which only made things harder to be scaled and near impossible to maintain.
+
+Making the approach a lot more specific to the website would help in not having that many abstractions. It will be concentrated on only one novel now.
+
+** Redundant resource utilization
+In version 1 of Novel Crawlers, there was a huge issue of having to send out the same requests from chapter 1 to the latest chapter whenever an EPUB generation was to take place. This is redundant, and storing the chapters away in a local database and querying only for chapters that have been released recently makes the process infinitely faster and easier for both the machine and the user.
+
+I intend to have Redis be the database that stores this information in a chapter wise fashion.
