@@ -25,7 +25,8 @@ def queryIt():
     conn = redis.Redis()
     print(conn.get('1-01'))
     print(conn.keys())
-    print(conn.get("chapter_links"))
+    for link in range(conn.llen("chapter_links")):
+        print(conn.lindex("chapter_links", link))
 
 def flushIt():
     """A utility function that flushes the database"""

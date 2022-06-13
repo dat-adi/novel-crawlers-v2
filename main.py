@@ -24,7 +24,7 @@ from pydantic import BaseModel
 
 # Importing Redis and Redis Queue
 import redis
-from rq import Queue
+from rq import Queue, Retry
 
 # Importing the components
 from indexer import indexIt
@@ -39,18 +39,21 @@ import uvicorn
 # TODO: Make all of this dynamic and loaded from config files.
 app = FastAPI()
 redis_conn = redis.Redis(host='localhost', port=6379)
-queue = Queue(connection=redis_conn)
+queue = Queue(connection=redis_conn, default_timeout=3600)
 queue.empty()
 
-# Defining an IndexList
-class IndexList(BaseModel):
-    ChapterName: dict
+def report_success(job, connection, result, *args, **kwargs):
+    print("Successful Job\n", job, connection, result)
+    pass
+
+def report_failure(job, connection, result, *args, **kwargs):
+    print("Failure Management On-boarding bois.\n", job, connection, result)
+    pass
 
 @app.get('/index')
-async def index() ->  IndexList:
+async def index() ->  None:
     """Index the Table of Contents Page"""
-    job = queue.enqueue(indexIt)
-    return job.result
+    queue.enqueue(indexIt)
 
 @app.get('/chapters')
 async def list_chapters() -> None:
@@ -60,7 +63,8 @@ async def list_chapters() -> None:
 @app.get('/scrape')
 async def scrape_all_chapters() -> None:
     """Scrape the wandering inn"""
-    queue.enqueue(get_all_chapters)
+    job = queue.enqueue(get_all_chapters, retry=Retry(max=3, interval=[10, 30, 60]), on_success=report_success, on_failure=report_failure)
+    print(f"Status: {job.get_status()}")
 
 @app.get('/flushall')
 async def flush_all() -> str:

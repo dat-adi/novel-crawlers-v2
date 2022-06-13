@@ -78,7 +78,9 @@ def cleanIt(chapter_link: str):
 
 def get_all_chapters() -> None:
     """Function that scrapes the entire wandering inn"""
-    print(chapter_links)
+    conn = redis.Redis()
+    for link in range(conn.llen("chapter_links")):
+        cleanIt(str(conn.lindex("chapter_links", link).decode()))
 
 if __name__ == "__main__":
     cleanIt("https://wanderinginn.com/2016/07/27/1-00/")
