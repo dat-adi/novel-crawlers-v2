@@ -76,5 +76,9 @@ def cleanIt(chapter_link: str):
         tmp = json.dumps(tmp)
         conn.set(chapter_link, tmp)
 
+def get_all_chapters() -> None:
+    """Function that scrapes the entire wandering inn"""
+    print(chapter_links)
+
 if __name__ == "__main__":
     cleanIt("https://wanderinginn.com/2016/07/27/1-00/")

@@ -27,8 +27,9 @@ import redis
 from rq import Queue
 
 # Importing the components
-from indexer import indexIt, queryIt, flushIt
-from extractor import cleanIt
+from indexer import indexIt
+from utilities import queryIt, flushIt
+from extractor import get_all_chapters
 
 # Importing the AGSI web server
 import uvicorn
@@ -55,6 +56,11 @@ async def index() ->  IndexList:
 async def list_chapters() -> None:
     """List the various chapters in the terminal space"""
     queue.enqueue(queryIt)
+
+@app.get('/scrape')
+async def scrape_all_chapters() -> None:
+    """Scrape the wandering inn"""
+    queue.enqueue(get_all_chapters)
 
 @app.get('/flushall')
 async def flush_all() -> str:
