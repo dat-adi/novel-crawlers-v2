@@ -47,23 +47,11 @@ def indexIt():
 
     # Entering the overall chapter links and the specific chapter links into
     # the Redis database.
-    conn.set("chapter_links", str(chapter_links))
     for link in chapter_links:
+        conn.rpush("chapter_links", link)
         conn.set(link, json.dumps({"chapter_url": link}))
 
     return chapter_links
-
-def queryIt():
-    """A utility function to query for all the chapter records in the database"""
-    conn = redis.Redis()
-    print(conn.get('1-01'))
-    print(conn.keys())
-    print(conn.get("chapter_links"))
-
-def flushIt():
-    """A utility function that flushes the database"""
-    conn = redis.Redis()
-    conn.flushall()
 
 if __name__ == "__main__":
     indexIt()
