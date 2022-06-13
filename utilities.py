@@ -16,18 +16,21 @@ def indexIt():
         if link[-2:] == "//":
             link = link[:-1]
 
+    conn.set("chapter_links", str(chapter_links))
     for link in chapter_links:
-        if len(link[25:].split('/')) > 2:
-            conn.set(link[25:].split('/')[3], json.dumps({"chapter_url": link}))
-        else:
-            conn.set(link[25:].split('/')[0], json.dumps({"chapter_url": link}))
+        conn.set(link, json.dumps({"chapter_url": link}))
 
     return chapter_links
 
 def queryIt():
     conn = redis.Redis()
     print(conn.get('1-01'))
-    print(conn.get('*'))
+    print(conn.keys())
+    print(conn.get("chapter_links"))
+
+def flushIt():
+    conn = redis.Redis()
+    conn.flushall()
 
 if __name__ == "__main__":
     indexIt()

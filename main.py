@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import redis
 from rq import Queue
-from utilities import indexIt, queryIt
+from utilities import indexIt, queryIt, flushIt
 import uvicorn
 
 
@@ -23,6 +23,11 @@ async def index() ->  IndexList:
 @app.get('/chapters')
 async def list_chapters() -> None:
     queue.enqueue(queryIt)
+
+@app.get('/flushall')
+async def flush_all() -> str:
+    queue.enqueue(flushIt)
+    return "Successful Flush"
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=10000)
