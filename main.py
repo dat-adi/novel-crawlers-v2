@@ -82,7 +82,7 @@ async def generate() -> str:
     return f"Generation of the EPUB has been done in {end_time - initial_time} seconds."
 
 @app.get('/download')
-async def download() -> None:
+async def download() -> FileResponse:
     queue.enqueue(download_and_clean)
     return FileResponse(path="/tmp/TWI/The Wandering Inn.epub", filename="TheWanderingInn.epub", media_type='text/epub')
 
