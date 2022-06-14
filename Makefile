@@ -1,6 +1,8 @@
 default: ## Run the app
-	. ./venv/bin/activate && python ./src/__main__.py
-	. ./venv/bin/activate && rq worker
+	. ./venv/bin/activate && python ./main.py
+
+worker: ## Runs a worker
+	. ./venv/bin/activate && rq worker 
 
 env: ## Install all the dependencies
 	@-virtualenv venv

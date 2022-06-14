@@ -26,11 +26,12 @@ from pydantic import BaseModel
 # Importing Redis and Redis Queue
 import redis
 from rq import Queue, Retry
+from fastapi.responses import FileResponse
 
 # Importing the components
 from indexer import indexIt
 from utilities import queryIt, flushIt
-from extractor import get_all_chapters, generate_epub
+from extractor import download_and_clean, get_all_chapters, generate_epub
 
 # Importing the AGSI web server
 import uvicorn
@@ -45,11 +46,9 @@ queue.empty()
 
 def report_success(job, connection, result, *args, **kwargs):
     print("Successful Job\n", job, connection, result)
-    pass
 
 def report_failure(job, connection, result, *args, **kwargs):
     print("Failure Management On-boarding bois.\n", job, connection, result)
-    pass
 
 @app.get('/index')
 async def index() ->  None:
@@ -80,13 +79,19 @@ async def generate() -> str:
     queue.enqueue(generate_epub, retry=Retry(max=3, interval=[10, 30, 60]), on_success=report_success, on_failure=report_failure)
     end_time = time.time()
 
-    return f"Generation of the EPUB has been done in {end_time - initial_time}"
+    return f"Generation of the EPUB has been done in {end_time - initial_time} seconds."
+
+@app.get('/download')
+async def download() -> None:
+    queue.enqueue(download_and_clean)
+    return FileResponse(path="/tmp/TWI/The Wandering Inn.epub", filename="TheWanderingInn.epub", media_type='text/epub')
 
 @app.get('/wordcount')
 async def word_count() -> str:
     """Get the word counts for the different chapters"""
+    # TODO: this function.
     return "Under development"
 
 if __name__ == "__main__":
     """Run the uvicorn ASGI web server"""
-    uvicorn.run(app, host="0.0.0.0", port=10000)
+    uvicorn.run(app, host="127.0.0.1", port=10000)

@@ -196,9 +196,14 @@ def get_all_chapters() -> None:
         cleanIt(str(conn.lindex("chapter_links", link).decode()))
 
 def generate_epub() -> None:
-    """Functions that generates an EPUB file"""
+    """Function that generates an EPUB file"""
     conn = redis.Redis()
-    output_folder = (Path.cwd()).joinpath(Path('./output/'))
+
+    if Path('/tmp/TWI').exists() is False:
+        twi_directory = Path('/tmp/TWI')
+        twi_directory.mkdir()
+
+    output_folder = Path('/tmp/TWI')
 
     # TODO: An improvement that can be made to the existing model is 
     # to also take in the file_path into the dictionary if it exists.
@@ -215,6 +220,13 @@ def generate_epub() -> None:
 
     generate_structure(titles, file_list, output_folder)
 
+def download_and_clean() -> None:
+    """Function that cleans up and returns a file path"""
+    for html_file in Path('/tmp/TWI').iterdir():
+        if html_file.as_posix()[-4:] != 'epub':
+            os.remove(html_file)
 
 if __name__ == "__main__":
     cleanIt("https://wanderinginn.com/interlude-satar-revised/")
+    #print(download_and_clean())
+
