@@ -25,8 +25,12 @@ def queryIt():
     conn = redis.Redis()
     print(conn.get('1-01'))
     print(conn.keys())
+    # TODO: Seems inefficient to access the database these many times,
+    # check to see if there's a better solution.
     for link in range(conn.llen("chapter_links")):
-        print(conn.lindex("chapter_links", link))
+        print(str(conn.lindex("chapter_links", link).decode()))
+
+    return [str(conn.lindex("chapter_links", link).decode()) for link in range(conn.llen("chapter_links"))]
 
 def flushIt():
     """A utility function that flushes the database"""

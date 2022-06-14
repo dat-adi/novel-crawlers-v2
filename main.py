@@ -29,7 +29,7 @@ from rq import Queue, Retry
 # Importing the components
 from indexer import indexIt
 from utilities import queryIt, flushIt
-from extractor import get_all_chapters
+from extractor import get_all_chapters, generate_epub
 
 # Importing the AGSI web server
 import uvicorn
@@ -75,7 +75,8 @@ async def flush_all() -> str:
 @app.get('/generate')
 async def generate() -> str:
     """Component to generate the Wandering Inn EPUB"""
-    return "Under construction"
+    queue.enqueue(generate_epub, retry=Retry(max=3, interval=[10, 30, 60]), on_success=report_success, on_failure=report_failure)
+    return "Processing... well, hopefully."
 
 @app.get('/wordcount')
 async def word_count() -> str:
