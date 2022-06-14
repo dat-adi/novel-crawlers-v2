@@ -19,6 +19,7 @@ The main program to run the Novel Crawlers FastAPI application.
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 # Importing FastAPI tools
+import time
 from fastapi import FastAPI
 from pydantic import BaseModel
 
@@ -75,8 +76,11 @@ async def flush_all() -> str:
 @app.get('/generate')
 async def generate() -> str:
     """Component to generate the Wandering Inn EPUB"""
+    initial_time = time.time()
     queue.enqueue(generate_epub, retry=Retry(max=3, interval=[10, 30, 60]), on_success=report_success, on_failure=report_failure)
-    return "Processing... well, hopefully."
+    end_time = time.time()
+
+    return f"Generation of the EPUB has been done in {end_time - initial_time}"
 
 @app.get('/wordcount')
 async def word_count() -> str:
