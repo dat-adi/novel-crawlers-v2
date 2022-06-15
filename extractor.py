@@ -34,10 +34,10 @@ from pathlib import Path
 import os
 
 # Importing the query utility
-from utilities import queryIt
+from utilities.query import queryIt
 
 
-def cleanIt(chapter_link: str):
+def cleanIt(interlude_counter: int, chapter_link: str) -> int:
     """Function that cleans up the page content"""
     conn = redis.Redis()
     tmp = conn.get(chapter_link)
@@ -54,6 +54,11 @@ def cleanIt(chapter_link: str):
         # Retrieving chapter title
         chapter_title = soup.find("h1", "entry-title")
         chapter_title = chapter_title.get_text()
+
+        # Hacky solution but it is what it is.
+        if chapter_title == "Interlude":
+            interlude_counter += 1
+            chapter_title += str(interlude_counter)
         tmp["chapter_title"] = chapter_title
         print(chapter_title)
 
@@ -86,6 +91,7 @@ def cleanIt(chapter_link: str):
         # Converting the JSON content into string for storage
         tmp = json.dumps(tmp)
         conn.set(chapter_link, tmp)
+    return interlude_counter
 
 
 def storeIt(chapter_title: str, content: str, output_folder: Path) -> Path:
@@ -199,8 +205,11 @@ def generate_structure(titles: list, html_files: list, output_folder: Path):
 def get_all_chapters() -> None:
     """Function that scrapes the entire wandering inn"""
     conn = redis.Redis()
+    interlude_counter = 0
     for link in range(conn.llen("chapter_links")):
-        cleanIt(str(conn.lindex("chapter_links", link).decode()))
+        interlude_counter = cleanIt(
+            interlude_counter, str(conn.lindex("chapter_links", link).decode())
+        )
 
 
 def generate_epub() -> None:
@@ -237,5 +246,6 @@ def download_and_clean() -> None:
 
 
 if __name__ == "__main__":
-    cleanIt("https://wanderinginn.com/interlude-satar-revised/")
+    # cleanIt("https://wanderinginn.com/interlude-satar-revised/")
     # print(download_and_clean())
+    get_all_chapters()

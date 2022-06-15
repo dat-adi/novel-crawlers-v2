@@ -15,4 +15,5 @@ help: ## Print a help section for all the make commands
 	@cat $(MAKEFILE_LIST) | grep -E '^[a-zA-Z_-]+:.*?## .*$$' | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 lint: ## Run the linter
-	@./venv/bin/black ./src/*
+	@./venv/bin/black ./*.py
+	@./venv/bin/black ./**/*.py

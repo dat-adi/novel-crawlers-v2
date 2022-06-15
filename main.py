@@ -30,7 +30,8 @@ from fastapi.responses import FileResponse
 
 # Importing the components
 from indexer import count_words, indexIt
-from utilities import queryIt, flushIt
+from utilities.query import queryIt
+from utilities.flush import flushIt
 from extractor import download_and_clean, get_all_chapters, generate_epub
 
 # Importing the AGSI web server
@@ -40,7 +41,7 @@ import uvicorn
 # Initializing default values for configuration variables
 # TODO: Make all of this dynamic and loaded from config files.
 app = FastAPI()
-redis_conn = redis.Redis(host="localhost", port=6379)
+redis_conn = redis.Redis()
 queue = Queue(connection=redis_conn, default_timeout=3600)
 queue.empty()
 
@@ -68,13 +69,11 @@ async def list_chapters() -> None:
 @app.get("/scrape")
 async def scrape_all_chapters() -> None:
     """Scrape the wandering inn"""
-    job = queue.enqueue(
-        get_all_chapters,
-        retry=Retry(max=3, interval=[10, 30, 60]),
-        on_success=report_success,
-        on_failure=report_failure,
-    )
-    print(f"Status: {job.get_status()}")
+    job = queue.enqueue(get_all_chapters)
+
+    time.sleep(5)
+
+    print(f"Done scraping!, {job.get_status()}")
 
 
 @app.get("/flushall")
@@ -88,12 +87,7 @@ async def flush_all() -> str:
 async def generate() -> str:
     """Component to generate the Wandering Inn EPUB"""
     initial_time = time.time()
-    queue.enqueue(
-        generate_epub,
-        retry=Retry(max=3, interval=[10, 30, 60]),
-        on_success=report_success,
-        on_failure=report_failure,
-    )
+    queue.enqueue(generate_epub)
     end_time = time.time()
 
     return f"Generation of the EPUB has been done in {end_time - initial_time} seconds."
@@ -101,7 +95,10 @@ async def generate() -> str:
 
 @app.get("/download")
 async def download() -> FileResponse:
-    queue.enqueue(download_and_clean)
+    queue.enqueue(download_and_clean, job_id="download_and_clean_job")
+    # Placing sleep timer as 1, if the process takes any longer
+    # than that, there's something wrong with the code.
+    time.sleep(1)
     return FileResponse(
         path="/tmp/TWI/The Wandering Inn.epub",
         filename="TheWanderingInn.epub",
@@ -112,8 +109,12 @@ async def download() -> FileResponse:
 @app.get("/wordcount")
 async def word_count() -> dict:
     """Get the word counts for the different chapters"""
-    res = count_words()
-    return res
+    job = queue.enqueue(count_words)
+    # Placing sleep timer as 1, this acts as a buffer for
+    # the execution of the job, if the process takes any longer
+    # than that, there's something wrong with the code.
+    time.sleep(1)
+    return job.result
 
 
 if __name__ == "__main__":
