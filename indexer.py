@@ -26,6 +26,7 @@ from bs4 import BeautifulSoup
 # Importing redis
 import redis
 
+
 def indexIt():
     """Function that scrapes and stores URLs from the Index"""
     conn = redis.Redis()
@@ -53,6 +54,7 @@ def indexIt():
 
     return chapter_links
 
+
 def count_words() -> dict:
     conn = redis.Redis()
     res = {}
@@ -67,11 +69,12 @@ def count_words() -> dict:
         total_word_count += word_count
 
         res[chapter_title] = word_count
-    
+
     res["Total Word Count"] = total_word_count
-    res["Total Page Count"] = total_word_count//233
+    res["Total Page Count"] = total_word_count // 233
 
     return res
+
 
 if __name__ == "__main__":
     indexIt()

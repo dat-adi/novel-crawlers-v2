@@ -36,6 +36,7 @@ import os
 # Importing the query utility
 from utilities import queryIt
 
+
 def cleanIt(chapter_link: str):
     """Function that cleans up the page content"""
     conn = redis.Redis()
@@ -44,7 +45,7 @@ def cleanIt(chapter_link: str):
 
     # Checking if content is already present for the chapter
     # and skips cleaning if not required.
-    if 'content' not in tmp.keys():
+    if "content" not in tmp.keys():
         # Raw data input
         raw = requests.get(tmp["chapter_url"]).text
         soup = BeautifulSoup(raw, "html.parser")
@@ -78,13 +79,14 @@ def cleanIt(chapter_link: str):
         xhtml_code += '\n<body dir="default">'
         xhtml_code += "\n<h1>" + chapter_title + "</h1>"
         xhtml_code += text
-        xhtml_code += '\n</body>'
+        xhtml_code += "\n</body>"
         xhtml_code += "\n</html>"
         tmp["content"] = xhtml_code
 
         # Converting the JSON content into string for storage
         tmp = json.dumps(tmp)
         conn.set(chapter_link, tmp)
+
 
 def storeIt(chapter_title: str, content: str, output_folder: Path) -> Path:
     """Stores the chapters into xhtml files"""
@@ -94,12 +96,13 @@ def storeIt(chapter_title: str, content: str, output_folder: Path) -> Path:
     f.close()
     return file_name_out
 
+
 def generate_structure(titles: list, html_files: list, output_folder: Path):
     """Generates the structure for the EPUB file"""
     epub = zipfile.ZipFile(output_folder.joinpath("The Wandering Inn" + ".epub"), "w")
     novelname = "The Wandering Inn"
     author = "pirateaba"
-    
+
     # Writing in the structure for the epub file
     epub.writestr("mimetype", "application/epub+zip")
     epub.writestr(
@@ -127,11 +130,14 @@ def generate_structure(titles: list, html_files: list, output_folder: Path):
     manifest = ""
     spine = ""
 
-    metadata = """<dc:title xmlns:dc="http://purl.org/dc/elements/1.1/">%(novelname)s</dc:title>\n<dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:ns0="http://www.idpf.org/2007/opf" ns0:role="aut" ns0:file-as="NaN">%(author)s</dc:creator>\n<meta xmlns:dc="http://purl.org/dc/elements/1.1/" name="calibre:series" content="%(series)s"/>""" % {
-        "novelname": novelname,
-        "author": author,
-        "series": novelname,
-    }
+    metadata = (
+        """<dc:title xmlns:dc="http://purl.org/dc/elements/1.1/">%(novelname)s</dc:title>\n<dc:creator xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:ns0="http://www.idpf.org/2007/opf" ns0:role="aut" ns0:file-as="NaN">%(author)s</dc:creator>\n<meta xmlns:dc="http://purl.org/dc/elements/1.1/" name="calibre:series" content="%(series)s"/>"""
+        % {
+            "novelname": novelname,
+            "author": author,
+            "series": novelname,
+        }
+    )
 
     toc_manifest = '<item href="toc.xhtml" id="toc" properties="nav" media-type="application/xhtml+xml"/>'
 
@@ -189,23 +195,25 @@ def generate_structure(titles: list, html_files: list, output_folder: Path):
     )
     epub.close()
 
+
 def get_all_chapters() -> None:
     """Function that scrapes the entire wandering inn"""
     conn = redis.Redis()
     for link in range(conn.llen("chapter_links")):
         cleanIt(str(conn.lindex("chapter_links", link).decode()))
 
+
 def generate_epub() -> None:
     """Function that generates an EPUB file"""
     conn = redis.Redis()
 
-    if Path('/tmp/TWI').exists() is False:
-        twi_directory = Path('/tmp/TWI')
+    if Path("/tmp/TWI").exists() is False:
+        twi_directory = Path("/tmp/TWI")
         twi_directory.mkdir()
 
-    output_folder = Path('/tmp/TWI')
+    output_folder = Path("/tmp/TWI")
 
-    # TODO: An improvement that can be made to the existing model is 
+    # TODO: An improvement that can be made to the existing model is
     # to also take in the file_path into the dictionary if it exists.
     # That way, we can get rid of the file_list variable altogether.
     file_list = []
@@ -220,13 +228,14 @@ def generate_epub() -> None:
 
     generate_structure(titles, file_list, output_folder)
 
+
 def download_and_clean() -> None:
     """Function that cleans up and returns a file path"""
-    for html_file in Path('/tmp/TWI').iterdir():
-        if html_file.as_posix()[-4:] != 'epub':
+    for html_file in Path("/tmp/TWI").iterdir():
+        if html_file.as_posix()[-4:] != "epub":
             os.remove(html_file)
+
 
 if __name__ == "__main__":
     cleanIt("https://wanderinginn.com/interlude-satar-revised/")
-    #print(download_and_clean())
-
+    # print(download_and_clean())

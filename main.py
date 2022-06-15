@@ -40,57 +40,81 @@ import uvicorn
 # Initializing default values for configuration variables
 # TODO: Make all of this dynamic and loaded from config files.
 app = FastAPI()
-redis_conn = redis.Redis(host='localhost', port=6379)
+redis_conn = redis.Redis(host="localhost", port=6379)
 queue = Queue(connection=redis_conn, default_timeout=3600)
 queue.empty()
+
 
 def report_success(job, connection, result, *args, **kwargs):
     print("Successful Job\n", job, connection, result)
 
+
 def report_failure(job, connection, result, *args, **kwargs):
     print("Failure Management On-boarding bois.\n", job, connection, result)
 
-@app.get('/index')
-async def index() ->  None:
+
+@app.get("/index")
+async def index() -> None:
     """Index the Table of Contents Page"""
     queue.enqueue(indexIt)
 
-@app.get('/chapters')
+
+@app.get("/chapters")
 async def list_chapters() -> None:
     """List the various chapters in the terminal space"""
     queue.enqueue(queryIt)
 
-@app.get('/scrape')
+
+@app.get("/scrape")
 async def scrape_all_chapters() -> None:
     """Scrape the wandering inn"""
-    job = queue.enqueue(get_all_chapters, retry=Retry(max=3, interval=[10, 30, 60]), on_success=report_success, on_failure=report_failure)
+    job = queue.enqueue(
+        get_all_chapters,
+        retry=Retry(max=3, interval=[10, 30, 60]),
+        on_success=report_success,
+        on_failure=report_failure,
+    )
     print(f"Status: {job.get_status()}")
 
-@app.get('/flushall')
+
+@app.get("/flushall")
 async def flush_all() -> str:
     """Flushing the database"""
     queue.enqueue(flushIt)
     return "Successful Flush"
 
-@app.get('/generate')
+
+@app.get("/generate")
 async def generate() -> str:
     """Component to generate the Wandering Inn EPUB"""
     initial_time = time.time()
-    queue.enqueue(generate_epub, retry=Retry(max=3, interval=[10, 30, 60]), on_success=report_success, on_failure=report_failure)
+    queue.enqueue(
+        generate_epub,
+        retry=Retry(max=3, interval=[10, 30, 60]),
+        on_success=report_success,
+        on_failure=report_failure,
+    )
     end_time = time.time()
 
     return f"Generation of the EPUB has been done in {end_time - initial_time} seconds."
 
-@app.get('/download')
+
+@app.get("/download")
 async def download() -> FileResponse:
     queue.enqueue(download_and_clean)
-    return FileResponse(path="/tmp/TWI/The Wandering Inn.epub", filename="TheWanderingInn.epub", media_type='text/epub')
+    return FileResponse(
+        path="/tmp/TWI/The Wandering Inn.epub",
+        filename="TheWanderingInn.epub",
+        media_type="text/epub",
+    )
 
-@app.get('/wordcount')
+
+@app.get("/wordcount")
 async def word_count() -> dict:
     """Get the word counts for the different chapters"""
     res = count_words()
     return res
+
 
 if __name__ == "__main__":
     """Run the uvicorn ASGI web server"""

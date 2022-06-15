@@ -20,17 +20,22 @@ The program set up for utilities.
 # Importing redis
 import redis
 
+
 def queryIt():
     """A utility function to query for all the chapter records in the database"""
     conn = redis.Redis()
-    print(conn.get('1-01'))
+    print(conn.get("1-01"))
     print(conn.keys())
     # TODO: Seems inefficient to access the database these many times,
     # check to see if there's a better solution.
     for link in range(conn.llen("chapter_links")):
         print(str(conn.lindex("chapter_links", link).decode()))
 
-    return [str(conn.lindex("chapter_links", link).decode()) for link in range(conn.llen("chapter_links"))]
+    return [
+        str(conn.lindex("chapter_links", link).decode())
+        for link in range(conn.llen("chapter_links"))
+    ]
+
 
 def flushIt():
     """A utility function that flushes the database"""
