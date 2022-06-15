@@ -29,7 +29,7 @@ from rq import Queue, Retry
 from fastapi.responses import FileResponse
 
 # Importing the components
-from indexer import indexIt
+from indexer import count_words, indexIt
 from utilities import queryIt, flushIt
 from extractor import download_and_clean, get_all_chapters, generate_epub
 
@@ -87,10 +87,10 @@ async def download() -> FileResponse:
     return FileResponse(path="/tmp/TWI/The Wandering Inn.epub", filename="TheWanderingInn.epub", media_type='text/epub')
 
 @app.get('/wordcount')
-async def word_count() -> str:
+async def word_count() -> dict:
     """Get the word counts for the different chapters"""
-    # TODO: this function.
-    return "Under development"
+    res = count_words()
+    return res
 
 if __name__ == "__main__":
     """Run the uvicorn ASGI web server"""

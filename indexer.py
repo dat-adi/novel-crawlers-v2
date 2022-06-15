@@ -53,5 +53,25 @@ def indexIt():
 
     return chapter_links
 
+def count_words() -> dict:
+    conn = redis.Redis()
+    res = {}
+    total_word_count = 0
+
+    for link in range(conn.llen("chapter_links")):
+        tmp = str(conn.lindex("chapter_links", link).decode())
+        tmp = json.loads(conn.get(tmp))
+
+        chapter_title = tmp["chapter_title"]
+        word_count = tmp["word_count"]
+        total_word_count += word_count
+
+        res[chapter_title] = word_count
+    
+    res["Total Word Count"] = total_word_count
+    res["Total Page Count"] = total_word_count//233
+
+    return res
+
 if __name__ == "__main__":
     indexIt()
