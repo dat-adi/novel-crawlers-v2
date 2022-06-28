@@ -64,9 +64,9 @@ def count_words() -> dict:
         tmp = str(conn.lindex("chapter_links", link).decode())
         tmp: dict = json.loads(conn.get(tmp))
 
-        chapter_title: dict = tmp["chapter_title"]
-        word_count: int = tmp["word_count"]
-        total_word_count += word_count
+        chapter_title: str = tmp.get("chapter_title")
+        word_count: int = tmp.get("word_count")
+        total_word_count += int(word_count or 20000)
 
         res[chapter_title] = word_count
 
