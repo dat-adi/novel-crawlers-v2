@@ -32,12 +32,12 @@ def indexIt():
     conn = redis.Redis()
 
     # Retrieving all the data from the table of contents
-    page = requests.get("https://wanderinginn.com/table-of-contents/").text
+    page: str = requests.get("https://wanderinginn.com/table-of-contents/").text
     soup = BeautifulSoup(page, "html.parser")
 
     # Retrieving only the chapter links from the content
     contents_tag = soup.find("div", "entry-content")
-    chapter_links = [link.get("href") for link in contents_tag.find_all("a")]
+    chapter_links: list = [link.get("href") for link in contents_tag.find_all("a")]
 
     # Cleaning up broken links
     for link in chapter_links:
@@ -58,14 +58,14 @@ def indexIt():
 def count_words() -> dict:
     conn = redis.Redis()
     res = {}
-    total_word_count = 0
+    total_word_count: int = 0
 
     for link in range(conn.llen("chapter_links")):
         tmp = str(conn.lindex("chapter_links", link).decode())
-        tmp = json.loads(conn.get(tmp))
+        tmp: dict = json.loads(conn.get(tmp))
 
-        chapter_title = tmp["chapter_title"]
-        word_count = tmp["word_count"]
+        chapter_title: dict = tmp["chapter_title"]
+        word_count: int = tmp["word_count"]
         total_word_count += word_count
 
         res[chapter_title] = word_count
