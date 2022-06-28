@@ -17,3 +17,9 @@ help: ## Print a help section for all the make commands
 lint: ## Run the linter
 	@./venv/bin/black ./*.py
 	@./venv/bin/black ./**/*.py
+
+test: ## Run tests
+	@./venv/bin/pytest .
+
+coverage: ## Make a coverage report
+	@./venv/bin/pytest --cov .
